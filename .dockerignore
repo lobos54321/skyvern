@@ -19,7 +19,9 @@ docs
 images
 
 # Front
-skyvern-frontend/.env*
+skyvern-frontend/.env
+skyvern-frontend/.env.local
+skyvern-frontend/.env.development
 skyvern-frontend/node_modules
 
 .dockerignore
