@@ -10,7 +10,9 @@ echo ""
 
 # Log key environment variables (redacting sensitive values)
 echo "Environment Configuration:"
-echo "  DATABASE_STRING: ${DATABASE_STRING:-<not set>}" | sed 's/:[^:@]*@/:***@/g'
+# Redact password from DATABASE_STRING (handles most PostgreSQL URL formats)
+# Note: For complex passwords with special chars, consider using external config tools
+echo "  DATABASE_STRING: ${DATABASE_STRING:-<not set>}" | sed 's/:[^:@]*@/:***@/g; s/password=[^& ]*/password=***/g'
 echo "  BROWSER_TYPE: ${BROWSER_TYPE:-<not set>}"
 echo "  LLM_KEY: ${LLM_KEY:-<not set>}"
 echo "  ENABLE_OPENAI: ${ENABLE_OPENAI:-<not set>}"
@@ -70,9 +72,10 @@ echo "Waiting for backend API to be ready..."
 MAX_WAIT=60
 WAIT_COUNT=0
 BACKEND_READY=false
+BACKEND_HEALTH_URL="${BACKEND_HEALTH_CHECK_URL:-http://127.0.0.1:8000/api/v1/internal/auth/status}"
 
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-    if curl -s -f http://127.0.0.1:8000/api/v1/internal/auth/status > /dev/null 2>&1; then
+    if curl -s -f "$BACKEND_HEALTH_URL" > /dev/null 2>&1; then
         echo "  Backend is ready!"
         BACKEND_READY=true
         break
