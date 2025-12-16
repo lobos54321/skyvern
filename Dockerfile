@@ -6,7 +6,9 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
  && ln -s /root/.local/bin/uv /usr/local/bin/uv
 COPY ./pyproject.toml /tmp/pyproject.toml
 COPY ./uv.lock /tmp/uv.lock
-RUN uv pip compile pyproject.toml -o requirements.txt --no-annotate --no-header
+RUN uv pip compile pyproject.toml -o requirements.txt \
+    --no-annotate \
+    --no-header
 
 # Frontend build stage
 FROM node:20.12-slim AS frontend-build
@@ -57,13 +59,10 @@ RUN cat /tmp/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodeso
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm /tmp/nodesource-repo.gpg.key && \
-    # confirm installation
     npm -v && node -v
-
 
 # install bitwarden cli
 RUN npm install -g @bitwarden/cli@2025.9.0
-# checking bw version also initializes the bw config
 RUN bw --version
 
 COPY . /app
@@ -96,4 +95,3 @@ COPY ./entrypoint-skyvern.sh /app/entrypoint-skyvern.sh
 RUN chmod +x /app/entrypoint-skyvern.sh
 
 CMD [ "/bin/bash", "/app/boot.sh" ]
-
