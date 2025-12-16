@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 RUN playwright install-deps
 RUN playwright install
 RUN apt-get update
-RUN apt-get install -y xauth x11-apps netpbm gpg ca-certificates curl
+RUN apt-get install -y xauth x11-apps netpbm gpg ca-certificates curl nginx
 RUN apt-get clean
 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o setup_nodejs.sh
@@ -31,6 +31,7 @@ RUN npm install -g @bitwarden/cli@2025.9.0
 RUN bw --version
 
 COPY . /app
+COPY nginx.conf /app/nginx.conf
 
 ENV PYTHONPATH="/app"
 ENV VIDEO_PATH=/data/videos

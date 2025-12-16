@@ -84,7 +84,9 @@ done
 # Configure nginx with dynamic port
 NGINX_PORT="${PORT:-8080}"
 echo "Configuring nginx on port $NGINX_PORT..."
+mkdir -p /etc/nginx
 sed "s/listen 8080;/listen $NGINX_PORT;/" /app/nginx.conf > /etc/nginx/nginx.conf
+nginx -t || echo "Nginx config test failed, check configuration"
 
 # Cleanup handler
 cleanup() {
