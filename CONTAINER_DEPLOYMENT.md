@@ -94,6 +94,7 @@ The following environment variables are used for configuration:
 - `PORT`: Backend server port (default: 8000)
 - `LOCAL_SERVER_PORT`: Local server port (used internally, default: 8081)
 - `NODE_ENV`: Node environment (set to `production` in container)
+- `BACKEND_HEALTH_CHECK_URL`: Backend health check URL (default: `http://127.0.0.1:8000/api/v1/internal/auth/status`)
 
 ## Startup Sequence
 1. Create required directories (`/data/log`, `/data/videos`, `/data/har`, `/data/artifacts`)
