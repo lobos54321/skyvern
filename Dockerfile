@@ -39,6 +39,9 @@ RUN bw --version
 
 COPY . /app
 
+RUN cd /app/skyvern-frontend && npm install
+RUN cd /app/skyvern-frontend && npm run build
+
 ENV PYTHONPATH="/app"
 ENV VIDEO_PATH=/data/videos
 ENV HAR_PATH=/data/har
