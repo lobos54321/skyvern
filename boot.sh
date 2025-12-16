@@ -16,7 +16,10 @@ echo "  DATABASE_STRING: ${DATABASE_STRING:-<not set>}" | sed 's/:[^:@]*@/:***@/
 echo "  BROWSER_TYPE: ${BROWSER_TYPE:-<not set>}"
 echo "  LLM_KEY: ${LLM_KEY:-<not set>}"
 echo "  ENABLE_OPENAI: ${ENABLE_OPENAI:-<not set>}"
-echo "  PORT: ${PORT:-8000}"
+echo "  BACKEND_PORT: ${PORT:-8000}"
+# Zeabur and other platforms often provide PORT env var for the main service port
+export NGINX_PORT="${PORT:-8080}"
+echo "  NGINX_PORT: ${NGINX_PORT}"
 echo ""
 
 # Track PIDs of background processes
@@ -104,15 +107,25 @@ if [ "$BACKEND_READY" = false ]; then
     echo "  Continuing anyway..."
 fi
 
+# Generate nginx config from template with environment variable substitution
+echo ""
+echo "Generating nginx configuration (port ${NGINX_PORT})..."
+if [ -f "/app/nginx.conf.template" ]; then
+    envsubst '${NGINX_PORT}' < /app/nginx.conf.template > /etc/nginx/nginx.conf
+    echo "  Nginx config generated from template"
+else
+    echo "  WARNING: nginx.conf.template not found, using existing nginx.conf"
+fi
+
 # Start nginx in foreground
 echo ""
-echo "Starting nginx reverse proxy (port 8080 external)..."
+echo "Starting nginx reverse proxy (port ${NGINX_PORT} external)..."
 echo "==================================="
 echo "All services started successfully!"
 echo "  Backend API: http://127.0.0.1:8000"
 echo "  Frontend (internal): http://127.0.0.1:8081"
 echo "  Artifacts (internal): http://127.0.0.1:9090"
-echo "  Nginx (external): http://0.0.0.0:8080"
+echo "  Nginx (external): http://0.0.0.0:${NGINX_PORT}"
 echo "==================================="
 echo ""
 

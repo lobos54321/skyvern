@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     nginx \
     curl \
+    gettext-base \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -81,7 +82,9 @@ ENV HAR_PATH=/data/har
 ENV LOG_PATH=/data/log
 ENV ARTIFACT_STORAGE_PATH=/data/artifacts
 
-# Copy nginx configuration
+# Copy nginx configuration template (will be processed by boot.sh)
+COPY ./nginx.conf.template /app/nginx.conf.template
+# Keep the static config as fallback
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
 # Copy boot script
