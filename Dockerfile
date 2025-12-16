@@ -1,23 +1,18 @@
 FROM python:3.11 AS requirements-stage
-# Run `skyvern init llm` before building to generate the .env file
 
 WORKDIR /tmp
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
- && ln -s /root/.local/bin/uv /usr/local/bin/uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    ln -s /root/.local/bin/uv /usr/local/bin/uv
 COPY ./pyproject.toml /tmp/pyproject.toml
 COPY ./uv.lock /tmp/uv.lock
-RUN uv pip compile pyproject.toml -o requirements.txt \
-    --no-annotate \
-    --no-header
+RUN uv pip compile pyproject.toml -o requirements.txt --no-annotate --no-header
 
-# Frontend build stage
 FROM node:20.12-slim AS frontend-build
 WORKDIR /app/skyvern-frontend
 COPY ./skyvern-frontend/package*.json ./
 RUN npm ci
 COPY ./skyvern-frontend ./
 
-# Build frontend with relative paths for nginx proxy
 ARG VITE_API_BASE_URL=/api/v1
 ARG VITE_WSS_BASE_URL=/api/v1
 ARG VITE_ARTIFACT_API_BASE_URL=/artifacts
@@ -32,40 +27,30 @@ RUN npm run build
 
 FROM python:3.11-slim-bookworm
 WORKDIR /app
+
 COPY --from=requirements-stage /tmp/requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 RUN playwright install-deps
 RUN playwright install
-RUN apt-get update && apt-get install -y \
-    xauth \
-    x11-apps \
-    netpbm \
-    gpg \
-    ca-certificates \
-    nginx \
-    curl \
-    gettext-base \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20.x using NodeSource setup script
+RUN apt-get update && \
+    apt-get install -y xauth x11-apps netpbm gpg ca-certificates nginx curl gettext-base && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     node -v && npm -v
 
-# install bitwarden cli
 RUN npm install -g @bitwarden/cli@2025.9.0
 RUN bw --version
 
 COPY . /app
-
-# Copy built frontend from frontend-build stage
 COPY --from=frontend-build /app/skyvern-frontend/dist /app/skyvern-frontend/dist
 
-# Install frontend dependencies for servers
 WORKDIR /app/skyvern-frontend
 RUN npm ci --omit=dev
 WORKDIR /app
@@ -76,17 +61,11 @@ ENV HAR_PATH=/data/har
 ENV LOG_PATH=/data/log
 ENV ARTIFACT_STORAGE_PATH=/data/artifacts
 
-# Copy nginx configuration template (will be processed by boot.sh)
 COPY ./nginx.conf.template /app/nginx.conf.template
-# Keep the static config as fallback
 COPY ./nginx.conf /etc/nginx/nginx.conf
-
-# Copy boot script
 COPY ./boot.sh /app/boot.sh
 RUN chmod +x /app/boot.sh
-
-# Keep legacy entrypoint for compatibility
 COPY ./entrypoint-skyvern.sh /app/entrypoint-skyvern.sh
 RUN chmod +x /app/entrypoint-skyvern.sh
 
-CMD [ "/bin/bash", "/app/boot.sh" ]
+CMD ["/bin/bash", "/app/boot.sh"]
