@@ -54,17 +54,29 @@ echo "Starting backend API on port 8000..."
 (unset PORT && python -m skyvern.forge > /data/log/backend.log 2>&1) &
 backend_pid=$!
 
-# Start frontend if it exists
+# Start frontend
+echo "Checking for frontend directory..."
 if [ -d "/app/skyvern-frontend" ]; then
-    echo "Starting frontend..."
+    echo "Frontend directory found, starting services..."
     cd /app/skyvern-frontend
+
+    echo "Starting frontend on port 8081..."
     LOCAL_SERVER_PORT=8081 NODE_ENV=production node localServer.js > /data/log/frontend.log 2>&1 &
     frontend_pid=$!
+    echo "Frontend PID: $frontend_pid"
 
-    echo "Starting artifact server..."
+    echo "Starting artifact server on port 9090..."
     node artifactServer.js > /data/log/artifacts.log 2>&1 &
     artifacts_pid=$!
+    echo "Artifact server PID: $artifacts_pid"
+
     cd /app
+else
+    echo "WARNING: /app/skyvern-frontend directory not found!"
+    echo "Listing /app contents:"
+    ls -la /app/ | head -20
+    frontend_pid=""
+    artifacts_pid=""
 fi
 
 # Wait for backend
