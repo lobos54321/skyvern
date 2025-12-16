@@ -32,6 +32,10 @@ if [ ! -f ".streamlit/secrets.toml" ]; then
         api_token=$(echo "$org_output" | awk '/token=/{gsub(/.*token='\''|'\''.*/, ""); print}')
         echo -e "[skyvern]\nconfigs = [\n    {\"env\" = \"local\", \"host\" = \"http://skyvern:8000/api/v1\", \"orgs\" = [{name=\"Skyvern\", cred=\"$api_token\"}]}\n]" > .streamlit/secrets.toml
         echo "Organization created"
+        echo "=========================================="
+        echo "IMPORTANT: Save this API token!"
+        echo "API Token: $api_token"
+        echo "=========================================="
     fi
 fi
 
