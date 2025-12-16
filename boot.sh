@@ -37,6 +37,9 @@ cleanup() {
 
 trap cleanup SIGTERM SIGINT
 
+# Ensure required directories exist
+mkdir -p /data/log /data/videos /data/har /data/artifacts
+
 # Start the backend API server
 echo "Starting backend API server (port 8000)..."
 python -m skyvern.forge > /data/log/backend.log 2>&1 &
