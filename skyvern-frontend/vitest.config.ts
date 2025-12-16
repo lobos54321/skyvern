@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     passWithNoTests: true,
+    environment: "jsdom",
   },
   resolve: {
     alias: {
