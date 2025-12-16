@@ -111,8 +111,15 @@ fi
 echo ""
 echo "Generating nginx configuration (port ${NGINX_PORT})..."
 if [ -f "/app/nginx.conf.template" ]; then
-    envsubst '${NGINX_PORT}' < /app/nginx.conf.template > /etc/nginx/nginx.conf
-    echo "  Nginx config generated from template"
+    # Try using envsubst if available, otherwise use sed
+    if command -v envsubst >/dev/null 2>&1; then
+        envsubst '${NGINX_PORT}' < /app/nginx.conf.template > /etc/nginx/nginx.conf
+        echo "  Nginx config generated from template using envsubst"
+    else
+        # Fallback to sed if envsubst is not available
+        sed "s/\${NGINX_PORT}/${NGINX_PORT}/g" /app/nginx.conf.template > /etc/nginx/nginx.conf
+        echo "  Nginx config generated from template using sed (envsubst not available)"
+    fi
 else
     echo "  WARNING: nginx.conf.template not found, using existing nginx.conf"
 fi
