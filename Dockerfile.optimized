@@ -1,11 +1,12 @@
 FROM python:3.11 AS requirements-stage
+# Run `skyvern init llm` before building to generate the .env file
 
 WORKDIR /tmp
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-RUN ln -s /root/.local/bin/uv /usr/local/bin/uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+ && ln -s /root/.local/bin/uv /usr/local/bin/uv
 COPY ./pyproject.toml /tmp/pyproject.toml
 COPY ./uv.lock /tmp/uv.lock
-RUN uv pip compile pyproject.toml -o requirements.txt
+RUN uv pip compile pyproject.toml -o requirements.txt --no-annotate --no-header
 
 FROM python:3.11-slim-bookworm
 WORKDIR /app
@@ -14,20 +15,17 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 RUN playwright install-deps
 RUN playwright install
-RUN apt-get update
-RUN apt-get install -y xauth x11-apps netpbm gpg ca-certificates curl
-RUN apt-get clean
+RUN apt-get install -y xauth x11-apps netpbm gpg ca-certificates && apt-get clean
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o setup_nodejs.sh
-RUN bash setup_nodejs.sh
+# Install Node.js 20.x using NodeSource official script
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get install -y nodejs
-RUN rm setup_nodejs.sh
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/*
-RUN node -v
-RUN npm -v
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN node -v && npm -v
 
+# install bitwarden cli
 RUN npm install -g @bitwarden/cli@2025.9.0
+# checking bw version also initializes the bw config
 RUN bw --version
 
 COPY . /app
@@ -38,6 +36,7 @@ ENV HAR_PATH=/data/har
 ENV LOG_PATH=/data/log
 ENV ARTIFACT_STORAGE_PATH=/data/artifacts
 
+COPY ./entrypoint-skyvern.sh /app/entrypoint-skyvern.sh
 RUN chmod +x /app/entrypoint-skyvern.sh
 
 CMD [ "/bin/bash", "/app/entrypoint-skyvern.sh" ]
