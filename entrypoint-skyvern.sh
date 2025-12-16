@@ -49,9 +49,9 @@ sleep 2
 DISPLAY=:99 xterm > /dev/null 2>&1 &
 python run_streaming.py > /data/log/streaming.log 2>&1 &
 
-# Start backend
-echo "Starting backend API..."
-python -m skyvern.forge > /data/log/backend.log 2>&1 &
+# Start backend on port 8000 (unset PORT to use default)
+echo "Starting backend API on port 8000..."
+(unset PORT && python -m skyvern.forge > /data/log/backend.log 2>&1) &
 backend_pid=$!
 
 # Start frontend if it exists
