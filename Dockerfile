@@ -2,11 +2,11 @@ FROM python:3.11 AS requirements-stage
 # Run `skyvern init llm` before building to generate the .env file
 
 WORKDIR /tmp
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
- && ln -s /root/.local/bin/uv /usr/local/bin/uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN ln -s /root/.local/bin/uv /usr/local/bin/uv
 COPY ./pyproject.toml /tmp/pyproject.toml
 COPY ./uv.lock /tmp/uv.lock
-RUN uv pip compile pyproject.toml -o requirements.txt --no-annotate --no-header
+RUN uv pip compile pyproject.toml -o requirements.txt
 
 FROM python:3.11-slim-bookworm
 WORKDIR /app
