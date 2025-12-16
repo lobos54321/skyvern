@@ -27,10 +27,8 @@ RUN apt-get install -y curl
 RUN apt-get install -y nginx
 RUN apt-get clean
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o /tmp/setup_nodejs.sh
-RUN bash /tmp/setup_nodejs.sh
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | sh -
 RUN apt-get install -y nodejs
-RUN rm /tmp/setup_nodejs.sh
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
 
