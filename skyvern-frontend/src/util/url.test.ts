@@ -94,7 +94,7 @@ describe("parseUrl", () => {
   test("allows pathname manipulation", () => {
     const result = parseUrl("/api/v1");
     expect(result.pathname).toBe("/api/v1");
-    
+
     // Test that we can manipulate the pathname
     const modified = result.pathname.replace("/api", "");
     expect(modified).toBe("/v1");
