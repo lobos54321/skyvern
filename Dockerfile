@@ -1,59 +1,42 @@
 FROM python:3.11 AS requirements-stage
+# Run `skyvern init llm` before building to generate the .env file
 
 WORKDIR /tmp
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    ln -s /root/.local/bin/uv /usr/local/bin/uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+ && ln -s /root/.local/bin/uv /usr/local/bin/uv
 COPY ./pyproject.toml /tmp/pyproject.toml
 COPY ./uv.lock /tmp/uv.lock
 RUN uv pip compile pyproject.toml -o requirements.txt --no-annotate --no-header
 
-FROM node:20.12-slim AS frontend-build
-WORKDIR /app/skyvern-frontend
-COPY ./skyvern-frontend/package*.json ./
-RUN npm ci
-COPY ./skyvern-frontend ./
-
-ARG VITE_API_BASE_URL=/api/v1
-ARG VITE_WSS_BASE_URL=/api/v1
-ARG VITE_ARTIFACT_API_BASE_URL=/artifacts
-ARG VITE_ENVIRONMENT=production
-
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-ENV VITE_WSS_BASE_URL=${VITE_WSS_BASE_URL}
-ENV VITE_ARTIFACT_API_BASE_URL=${VITE_ARTIFACT_API_BASE_URL}
-ENV VITE_ENVIRONMENT=${VITE_ENVIRONMENT}
-
-RUN npm run build
-
 FROM python:3.11-slim-bookworm
 WORKDIR /app
-
 COPY --from=requirements-stage /tmp/requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 RUN playwright install-deps
 RUN playwright install
+RUN apt-get install -y xauth x11-apps netpbm gpg ca-certificates && apt-get clean
 
-RUN apt-get update && \
-    apt-get install -y xauth x11-apps netpbm gpg ca-certificates nginx curl gettext-base && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+COPY .nvmrc /app/.nvmrc
+COPY nodesource-repo.gpg.key /tmp/nodesource-repo.gpg.key
+RUN cat /tmp/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    NODE_MAJOR=$(cut -d. -f1 < /app/.nvmrc) && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" >> /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    node -v && npm -v
+    rm /tmp/nodesource-repo.gpg.key && \
+    # confirm installation
+    npm -v && node -v
 
+
+# install bitwarden cli
 RUN npm install -g @bitwarden/cli@2025.9.0
+# checking bw version also initializes the bw config
 RUN bw --version
 
 COPY . /app
-COPY --from=frontend-build /app/skyvern-frontend/dist /app/skyvern-frontend/dist
-
-WORKDIR /app/skyvern-frontend
-RUN npm ci --omit=dev
-WORKDIR /app
 
 ENV PYTHONPATH="/app"
 ENV VIDEO_PATH=/data/videos
@@ -61,11 +44,7 @@ ENV HAR_PATH=/data/har
 ENV LOG_PATH=/data/log
 ENV ARTIFACT_STORAGE_PATH=/data/artifacts
 
-COPY ./nginx.conf.template /app/nginx.conf.template
-COPY ./nginx.conf /etc/nginx/nginx.conf
-COPY ./boot.sh /app/boot.sh
-RUN chmod +x /app/boot.sh
 COPY ./entrypoint-skyvern.sh /app/entrypoint-skyvern.sh
 RUN chmod +x /app/entrypoint-skyvern.sh
 
-CMD ["/bin/bash", "/app/boot.sh"]
+CMD [ "/bin/bash", "/app/entrypoint-skyvern.sh" ]
