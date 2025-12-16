@@ -5,13 +5,14 @@ import {
   persistRuntimeApiKey,
   clearRuntimeApiKey,
 } from "@/util/env";
+import { parseUrl } from "@/util/url";
 import axios from "axios";
 
 type ApiVersion = "sans-api-v1" | "v1" | "v2";
 
 const apiV1BaseUrl = apiBaseUrl;
 const apiV2BaseUrl = apiBaseUrl.replace("v1", "v2");
-const url = new URL(apiBaseUrl);
+const url = parseUrl(apiBaseUrl);
 const pathname = url.pathname.replace("/api", "");
 const apiSansApiV1BaseUrl = `${url.origin}${pathname}`;
 

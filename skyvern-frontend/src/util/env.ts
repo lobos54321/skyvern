@@ -1,3 +1,5 @@
+import { parseUrl, toWebSocketUrl } from "./url";
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL as string;
 
 if (!apiBaseUrl) {
@@ -32,28 +34,23 @@ const lsKeys = {
 
 const wssBaseUrl = import.meta.env.VITE_WSS_BASE_URL;
 
-let newWssBaseUrl = wssBaseUrl;
-try {
-  const url = new URL(wssBaseUrl);
+// Convert WSS URL (which may be relative) and strip /api prefix if present
+const newWssBaseUrl = (() => {
+  const wsUrl = toWebSocketUrl(wssBaseUrl);
+  const url = parseUrl(wsUrl);
   if (url.pathname.startsWith("/api")) {
     url.pathname = url.pathname.replace(/^\/api/, "");
   }
-  newWssBaseUrl = url.toString();
-} catch (e) {
-  newWssBaseUrl = wssBaseUrl.replace("/api", "");
-}
+  return url.toString();
+})();
 
 // Base URL for the Runs API (strip a leading `/api` segment: /api/v1 -> /v1)
 const runsApiBaseUrl = (() => {
-  try {
-    const url = new URL(apiBaseUrl);
-    if (url.pathname.startsWith("/api")) {
-      url.pathname = url.pathname.replace(/^\/api/, "");
-    }
-    return `${url.origin}${url.pathname}`;
-  } catch (e) {
-    return apiBaseUrl.replace("/api", "");
+  const url = parseUrl(apiBaseUrl);
+  if (url.pathname.startsWith("/api")) {
+    url.pathname = url.pathname.replace(/^\/api/, "");
   }
+  return `${url.origin}${url.pathname}`;
 })();
 
 let runtimeApiKey: string | null | undefined;
