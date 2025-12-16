@@ -20,7 +20,6 @@ images
 
 # Front
 skyvern-frontend/.env*
-skyvern-frontend/dist
 skyvern-frontend/node_modules
 
 .dockerignore
