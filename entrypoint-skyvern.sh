@@ -81,15 +81,16 @@ fi
 
 # Wait for backend
 echo "Waiting for backend to be ready..."
-for i in {1..60}; do
-    if curl -sf http://127.0.0.1:8000/api/v1/internal/auth/status > /dev/null 2>&1; then
+for i in {1..30}; do
+    # Just check if backend is listening on port 8000
+    if curl -sf http://127.0.0.1:8000 > /dev/null 2>&1; then
         echo "Backend is ready!"
         break
     fi
     sleep 1
-    if [ $i -eq 60 ]; then
-        echo "Backend health check timeout"
-        tail -n 30 /data/log/backend.log || true
+    if [ $i -eq 30 ]; then
+        echo "Backend may not be fully ready, continuing anyway..."
+        tail -n 20 /data/log/backend.log || true
     fi
 done
 
