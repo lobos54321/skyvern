@@ -49,19 +49,11 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY .nvmrc /app/.nvmrc
-COPY nodesource-repo.gpg.key /tmp/nodesource-repo.gpg.key
-
-# Setup Node.js repository and install
-RUN mkdir -p /etc/apt/keyrings && \
-    gpg --dearmor < /tmp/nodesource-repo.gpg.key > /etc/apt/keyrings/nodesource.gpg && \
-    NODE_MAJOR=$(cut -d. -f1 < /app/.nvmrc) && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" > /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && \
+# Install Node.js 20.x using NodeSource setup script
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    rm /tmp/nodesource-repo.gpg.key && \
     node -v && npm -v
 
 # install bitwarden cli
