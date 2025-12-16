@@ -2,7 +2,7 @@ import { createServer } from "http";
 import handler from "serve-handler";
 import open from "open";
 
-const port = 8080;
+const port = process.env.LOCAL_SERVER_PORT || 8080;
 const url = `http://localhost:${port}`;
 
 const server = createServer((request, response) => {
@@ -19,7 +19,10 @@ const server = createServer((request, response) => {
   });
 });
 
-server.listen(8080, async () => {
+server.listen(port, async () => {
   console.log(`Running at ${url}`);
-  await open(url);
+  // Only open browser in development mode, not in Docker container
+  if (process.env.NODE_ENV !== 'production') {
+    await open(url);
+  }
 });
