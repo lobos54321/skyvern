@@ -1,0 +1,96 @@
+# X (Twitter) Platform Publish Workflow
+# 用于通过 Skyvern 自动发布内容到 X 平台
+#
+# 使用方式:
+# 1. 在 Skyvern 中导入此工作流
+# 2. 获取工作流 ID 并配置到 SKYVERN_WORKFLOW_X 环境变量
+# 3. 创建 Browser Profile 并手动登录 X 账号
+#
+# 参数说明:
+# - content: 推文内容 (必需)
+# - images: 图片 URL 数组 (可选)
+# - video: 视频 URL (可选)
+
+workflow:
+  name: "X Platform Publish"
+  description: "自动发布内容到 X (Twitter) 平台"
+  version: "1.0.0"
+
+  parameters:
+    - name: content
+      type: string
+      required: true
+      description: "推文内容"
+    - name: images
+      type: array
+      required: false
+      default: []
+      description: "图片 URL 数组"
+    - name: video
+      type: string
+      required: false
+      description: "视频 URL"
+
+  blocks:
+    # 步骤 1: 导航到发布页面
+    - block_type: task
+      label: navigate_to_compose
+      url: "https://x.com/compose/post"
+      navigation_goal: "等待推文编辑框加载完成"
+      complete_on_download: false
+      error_code_mapping:
+        login_required: "检测到需要登录，请检查 Browser Profile"
+      max_steps_override: 10
+
+    # 步骤 2: 输入推文内容
+    - block_type: task
+      label: enter_content
+      navigation_goal: |
+        在推文编辑框中输入以下内容:
+        {{ content }}
+
+        确保内容完整输入到编辑框中。
+      complete_on_download: false
+      max_steps_override: 10
+
+    # 步骤 3: 上传媒体 (条件执行)
+    - block_type: task
+      label: upload_media
+      continue_on_failure: true
+      navigation_goal: |
+        {% if images and images|length > 0 %}
+        点击媒体上传按钮，上传以下图片:
+        {% for img in images %}
+        - {{ img }}
+        {% endfor %}
+        {% elif video %}
+        点击媒体上传按钮，上传视频:
+        {{ video }}
+        {% else %}
+        跳过媒体上传步骤。
+        {% endif %}
+      max_steps_override: 15
+
+    # 步骤 4: 发布推文
+    - block_type: task
+      label: submit_post
+      navigation_goal: |
+        点击"发布"按钮提交推文。
+        等待发布完成，确认推文已成功发布。
+      complete_on_download: false
+      max_steps_override: 10
+
+    # 步骤 5: 提取结果
+    - block_type: task
+      label: extract_result
+      data_extraction_goal: |
+        提取发布成功后的推文信息:
+        - tweet_id: 推文 ID (从 URL 中提取 /status/ 后的数字)
+        - tweet_url: 推文完整 URL
+      max_steps_override: 5
+
+  output_parameters:
+    - name: tweet_id
+      description: "发布成功的推文 ID"
+    - name: tweet_url
+      description: "发布成功的推文 URL"
