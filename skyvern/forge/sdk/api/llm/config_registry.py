@@ -1335,7 +1335,7 @@ if settings.ENABLE_VERTEX_AI:
     LLMConfigRegistry.register_config(
         "GEMINI_3_FLASH",
         LLMConfig(
-            "gemini/gemini-3-flash",
+            "gemini/gemini-3-flash-preview",
             ["GEMINI_API_KEY"],
             supports_vision=True,
             add_assistant_prefix=False,
@@ -1351,7 +1351,7 @@ if settings.ENABLE_VERTEX_AI:
     LLMConfigRegistry.register_config(
         "VERTEX_GEMINI_3.0_FLASH",
         LLMConfig(
-            "vertex_ai/gemini-3-flash",
+            "vertex_ai/gemini-3-flash-preview",
             [],
             supports_vision=True,
             add_assistant_prefix=False,
