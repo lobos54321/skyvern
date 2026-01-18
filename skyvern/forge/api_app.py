@@ -95,11 +95,10 @@ def create_api_app() -> FastAPI:
     fastapi_app.include_router(legacy_base_router, prefix="/api/v1")
     fastapi_app.include_router(legacy_v2_router, prefix="/api/v2")
 
-    # local dev endpoints
-    if settings.ENV == "local":
-        fastapi_app.include_router(internal_auth.router, prefix="/v1")
-        fastapi_app.include_router(internal_auth.router, prefix="/api/v1")
-        fastapi_app.include_router(internal_auth.router, prefix="/api/v2")
+    # Internal auth endpoints - needed for frontend in all environments
+    fastapi_app.include_router(internal_auth.router, prefix="/v1")
+    fastapi_app.include_router(internal_auth.router, prefix="/api/v1")
+    fastapi_app.include_router(internal_auth.router, prefix="/api/v2")
 
     fastapi_app.openapi = lambda: custom_openapi(fastapi_app)
 
