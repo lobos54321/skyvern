@@ -965,6 +965,23 @@ if settings.ENABLE_GEMINI:
             ),
         ),
     )
+    # Gemini 3 Flash (用户指定使用此模型)
+    LLMConfigRegistry.register_config(
+        "GEMINI_3_FLASH",
+        LLMConfig(
+            "gemini/gemini-3-flash-preview",
+            ["GEMINI_API_KEY"],
+            supports_vision=True,
+            add_assistant_prefix=False,
+            max_completion_tokens=65536,
+            litellm_params=LiteLLMParams(
+                thinking={
+                    "budget_tokens": settings.GEMINI_THINKING_BUDGET,
+                    "type": "enabled" if settings.GEMINI_INCLUDE_THOUGHT else None,
+                },
+            ),
+        ),
+    )
 
 
 if settings.ENABLE_NOVITA:
@@ -1328,23 +1345,6 @@ if settings.ENABLE_VERTEX_AI:
                 vertex_location=settings.VERTEX_LOCATION,
                 thinking_level="medium" if settings.GEMINI_INCLUDE_THOUGHT else "minimal",
                 vertex_credentials=settings.VERTEX_CREDENTIALS,
-            ),
-        ),
-    )
-    # Gemini 3 Flash (用户指定使用此模型)
-    LLMConfigRegistry.register_config(
-        "GEMINI_3_FLASH",
-        LLMConfig(
-            "gemini/gemini-3-flash-preview",
-            ["GEMINI_API_KEY"],
-            supports_vision=True,
-            add_assistant_prefix=False,
-            max_completion_tokens=65536,
-            litellm_params=LiteLLMParams(
-                thinking={
-                    "budget_tokens": settings.GEMINI_THINKING_BUDGET,
-                    "type": "enabled" if settings.GEMINI_INCLUDE_THOUGHT else None,
-                },
             ),
         ),
     )
