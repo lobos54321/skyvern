@@ -1331,6 +1331,42 @@ if settings.ENABLE_VERTEX_AI:
             ),
         ),
     )
+    # Gemini 3 Flash (用户指定使用此模型)
+    LLMConfigRegistry.register_config(
+        "GEMINI_3_FLASH",
+        LLMConfig(
+            "gemini/gemini-3-flash",
+            ["GEMINI_API_KEY"],
+            supports_vision=True,
+            add_assistant_prefix=False,
+            max_completion_tokens=65536,
+            litellm_params=LiteLLMParams(
+                thinking={
+                    "budget_tokens": settings.GEMINI_THINKING_BUDGET,
+                    "type": "enabled" if settings.GEMINI_INCLUDE_THOUGHT else None,
+                },
+            ),
+        ),
+    )
+    LLMConfigRegistry.register_config(
+        "VERTEX_GEMINI_3.0_FLASH",
+        LLMConfig(
+            "vertex_ai/gemini-3-flash",
+            [],
+            supports_vision=True,
+            add_assistant_prefix=False,
+            max_completion_tokens=65536,
+            litellm_params=LiteLLMParams(
+                api_base=f"{api_base}/gemini-3-flash" if api_base else None,
+                vertex_location=settings.VERTEX_LOCATION,
+                thinking={
+                    "budget_tokens": settings.GEMINI_THINKING_BUDGET,
+                    "type": "enabled" if settings.GEMINI_INCLUDE_THOUGHT else None,
+                },
+                vertex_credentials=settings.VERTEX_CREDENTIALS,
+            ),
+        ),
+    )
     LLMConfigRegistry.register_config(
         "VERTEX_GEMINI_2.5_FLASH_LITE",
         LLMConfig(
