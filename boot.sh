@@ -84,11 +84,14 @@ echo "Waiting for backend API to be ready..."
 MAX_WAIT=60
 WAIT_COUNT=0
 BACKEND_READY=false
-BACKEND_HEALTH_URL="${BACKEND_HEALTH_CHECK_URL:-http://127.0.0.1:8000/api/v1/internal/auth/status}"
+# Use a simple endpoint that works in all environments
+BACKEND_HEALTH_URL="${BACKEND_HEALTH_CHECK_URL:-http://127.0.0.1:8000/api/v1/workflows}"
 
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-    if curl -s -f "$BACKEND_HEALTH_URL" > /dev/null 2>&1; then
-        echo "  Backend is ready!"
+    # Check if backend responds (even with 401/403 is OK, just not connection refused)
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_HEALTH_URL" 2>/dev/null || echo "000")
+    if [ "$HTTP_CODE" != "000" ] && [ "$HTTP_CODE" != "502" ] && [ "$HTTP_CODE" != "503" ]; then
+        echo "  Backend is ready! (HTTP $HTTP_CODE)"
         BACKEND_READY=true
         break
     fi
