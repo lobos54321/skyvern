@@ -45,6 +45,15 @@ trap cleanup SIGTERM SIGINT
 # Ensure required directories exist
 mkdir -p /data/log /data/videos /data/har /data/artifacts
 
+# Run database migrations
+echo "Running database migrations..."
+cd /app
+alembic upgrade head || {
+    echo "  WARNING: Database migration failed, but continuing..."
+}
+echo "  Database migrations completed"
+echo ""
+
 # Start the backend API server
 echo "Starting backend API server (port 8000)..."
 python -m skyvern.forge > /data/log/backend.log 2>&1 &
