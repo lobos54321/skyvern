@@ -271,6 +271,9 @@ if settings.ENABLE_OPENAI:
     )
 
 if settings.ENABLE_ANTHROPIC:
+    # Create shared litellm_params for Anthropic models to explicitly pass the API key
+    _anthropic_litellm_params = LiteLLMParams(api_key=settings.ANTHROPIC_API_KEY)
+
     LLMConfigRegistry.register_config(
         "ANTHROPIC_CLAUDE3",
         LLMConfig(
@@ -278,6 +281,7 @@ if settings.ENABLE_ANTHROPIC:
             ["ANTHROPIC_API_KEY"],
             supports_vision=True,
             add_assistant_prefix=True,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -287,6 +291,7 @@ if settings.ENABLE_ANTHROPIC:
             ["ANTHROPIC_API_KEY"],
             supports_vision=True,
             add_assistant_prefix=True,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -296,6 +301,7 @@ if settings.ENABLE_ANTHROPIC:
             ["ANTHROPIC_API_KEY"],
             supports_vision=True,
             add_assistant_prefix=True,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -305,6 +311,7 @@ if settings.ENABLE_ANTHROPIC:
             ["ANTHROPIC_API_KEY"],
             supports_vision=True,
             add_assistant_prefix=True,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -315,6 +322,7 @@ if settings.ENABLE_ANTHROPIC:
             supports_vision=True,
             add_assistant_prefix=True,
             max_completion_tokens=8192,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -325,6 +333,7 @@ if settings.ENABLE_ANTHROPIC:
             supports_vision=True,
             add_assistant_prefix=True,
             max_completion_tokens=64000,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -335,6 +344,7 @@ if settings.ENABLE_ANTHROPIC:
             supports_vision=True,
             add_assistant_prefix=True,
             max_completion_tokens=8192,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -345,6 +355,7 @@ if settings.ENABLE_ANTHROPIC:
             supports_vision=True,
             add_assistant_prefix=True,
             max_completion_tokens=32000,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -355,6 +366,7 @@ if settings.ENABLE_ANTHROPIC:
             supports_vision=True,
             add_assistant_prefix=True,
             max_completion_tokens=64000,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -365,6 +377,7 @@ if settings.ENABLE_ANTHROPIC:
             supports_vision=True,
             add_assistant_prefix=True,
             max_completion_tokens=64000,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
     LLMConfigRegistry.register_config(
@@ -375,6 +388,7 @@ if settings.ENABLE_ANTHROPIC:
             supports_vision=True,
             add_assistant_prefix=True,
             max_completion_tokens=64000,
+            litellm_params=_anthropic_litellm_params,
         ),
     )
 
