@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Ensure Python output is unbuffered for proper log visibility
+export PYTHONUNBUFFERED=1
+
 echo "==================================="
 echo "Skyvern Container Boot Script"
 echo "==================================="
@@ -56,7 +59,9 @@ echo ""
 
 # Start the backend API server
 echo "Starting backend API server (port 8000)..."
-python -m skyvern.forge > /data/log/backend.log 2>&1 &
+# Use tee to output logs to both stdout and file for Zeabur log visibility
+# Use -u flag for unbuffered Python output to ensure logs appear immediately
+python -u -m skyvern.forge 2>&1 | tee /data/log/backend.log &
 BACKEND_PID=$!
 PIDS+=($BACKEND_PID)
 echo "  Backend started with PID: $BACKEND_PID"
@@ -64,14 +69,14 @@ echo "  Backend started with PID: $BACKEND_PID"
 # Start the local server (serves frontend)
 echo "Starting local server (port 8081)..."
 cd /app/skyvern-frontend
-LOCAL_SERVER_PORT=8081 NODE_ENV=production node localServer.js > /data/log/localserver.log 2>&1 &
+LOCAL_SERVER_PORT=8081 NODE_ENV=production node localServer.js 2>&1 | tee /data/log/localserver.log &
 LOCAL_SERVER_PID=$!
 PIDS+=($LOCAL_SERVER_PID)
 echo "  Local server started with PID: $LOCAL_SERVER_PID"
 
 # Start the artifact server
 echo "Starting artifact server (port 9090)..."
-node artifactServer.js > /data/log/artifactserver.log 2>&1 &
+node artifactServer.js 2>&1 | tee /data/log/artifactserver.log &
 ARTIFACT_SERVER_PID=$!
 PIDS+=($ARTIFACT_SERVER_PID)
 echo "  Artifact server started with PID: $ARTIFACT_SERVER_PID"
