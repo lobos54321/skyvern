@@ -59,9 +59,9 @@ echo ""
 
 # Start the backend API server
 echo "Starting backend API server (port 8000)..."
-# Use tee to output logs to both stdout and file for Zeabur log visibility
-# Use -u flag for unbuffered Python output to ensure logs appear immediately
-python -u -m skyvern.forge 2>&1 | tee /data/log/backend.log &
+# Output directly to stdout for Zeabur log visibility
+# File logging disabled - container runtime handles log persistence
+python -u -m skyvern.forge &
 BACKEND_PID=$!
 PIDS+=($BACKEND_PID)
 echo "  Backend started with PID: $BACKEND_PID"
@@ -69,14 +69,14 @@ echo "  Backend started with PID: $BACKEND_PID"
 # Start the local server (serves frontend)
 echo "Starting local server (port 8081)..."
 cd /app/skyvern-frontend
-LOCAL_SERVER_PORT=8081 NODE_ENV=production node localServer.js 2>&1 | tee /data/log/localserver.log &
+LOCAL_SERVER_PORT=8081 NODE_ENV=production node localServer.js &
 LOCAL_SERVER_PID=$!
 PIDS+=($LOCAL_SERVER_PID)
 echo "  Local server started with PID: $LOCAL_SERVER_PID"
 
 # Start the artifact server
 echo "Starting artifact server (port 9090)..."
-node artifactServer.js 2>&1 | tee /data/log/artifactserver.log &
+node artifactServer.js &
 ARTIFACT_SERVER_PID=$!
 PIDS+=($ARTIFACT_SERVER_PID)
 echo "  Artifact server started with PID: $ARTIFACT_SERVER_PID"
@@ -104,8 +104,6 @@ while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
     # Check if backend process is still running
     if ! kill -0 $BACKEND_PID 2>/dev/null; then
         echo "  ERROR: Backend process died during startup!"
-        echo "  Last 20 lines of backend log:"
-        tail -n 20 /data/log/backend.log
         cleanup
         exit 1
     fi
@@ -119,8 +117,7 @@ done
 
 if [ "$BACKEND_READY" = false ]; then
     echo "  WARNING: Backend did not become ready within $MAX_WAIT seconds"
-    echo "  Last 20 lines of backend log:"
-    tail -n 20 /data/log/backend.log
+    echo "  Check container logs for backend startup errors"
     echo "  Continuing anyway..."
 fi
 
@@ -153,5 +150,13 @@ echo "  Nginx (external): http://0.0.0.0:${NGINX_PORT}"
 echo "==================================="
 echo ""
 
-# Start nginx in foreground - this blocks and keeps the container running
-exec nginx -g 'daemon off;'
+# Start nginx in background (not exec, to keep shell running for log forwarding)
+nginx -g 'daemon off;' &
+NGINX_PID=$!
+PIDS+=($NGINX_PID)
+echo "  Nginx started with PID: $NGINX_PID"
+
+# Wait for any process to exit - if any dies, cleanup and exit
+wait -n
+echo "A service has exited unexpectedly"
+cleanup
