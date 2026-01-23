@@ -40,10 +40,12 @@ function getFormattedResult(type: "json" | "html" | "text", result: unknown) {
 function getEndpoint(type: "json" | "html" | "text") {
   switch (type) {
     case "json":
-      return "/artifact/json";
+      // Use /json directly - nginx rewrites /artifacts/* to /artifact/*
+      return "/json";
     case "html":
     case "text":
-      return "/artifact/text";
+      // Use /text directly - nginx rewrites /artifacts/* to /artifact/*
+      return "/text";
   }
 }
 

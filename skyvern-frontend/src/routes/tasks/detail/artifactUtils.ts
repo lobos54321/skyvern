@@ -6,7 +6,8 @@ export function getImageURL(artifact: ArtifactApiResponse): string {
     return artifact.signed_url;
   }
   if (artifact.uri.startsWith("file://")) {
-    return `${artifactApiBaseUrl}/artifact/image?path=${artifact.uri.slice(7)}`;
+    // Use /image directly - nginx rewrites /artifacts/* to /artifact/*
+    return `${artifactApiBaseUrl}/image?path=${artifact.uri.slice(7)}`;
   }
   return artifact.uri;
 }
@@ -16,7 +17,8 @@ export function getScreenshotURL(task: TaskApiResponse) {
     return;
   }
   if (task.screenshot_url?.startsWith("file://")) {
-    return `${artifactApiBaseUrl}/artifact/image?path=${task.screenshot_url.slice(7)}`;
+    // Use /image directly - nginx rewrites /artifacts/* to /artifact/*
+    return `${artifactApiBaseUrl}/image?path=${task.screenshot_url.slice(7)}`;
   }
   return task.screenshot_url;
 }
@@ -26,7 +28,8 @@ export function getRecordingURL(task: TaskApiResponse) {
     return null;
   }
   if (task.recording_url?.startsWith("file://")) {
-    return `${artifactApiBaseUrl}/artifact/recording?path=${task.recording_url.slice(7)}`;
+    // Use /recording directly - nginx rewrites /artifacts/* to /artifact/*
+    return `${artifactApiBaseUrl}/recording?path=${task.recording_url.slice(7)}`;
   }
   return task.recording_url;
 }
